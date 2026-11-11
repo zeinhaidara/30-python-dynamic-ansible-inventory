@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m ruff check .
+      - run: python -m pytest -q
+
+  ansible-inventory-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r requirements-dev.txt
+      - run: chmod +x tests/fixtures/fixture_inventory.py
+      - name: validate inventory JSON via ansible-inventory
+        run: ansible-inventory -i tests/fixtures/fixture_inventory.py --list
+      - name: assert expected groups are present
+        run: |
+          ansible-inventory -i tests/fixtures/fixture_inventory.py --list \
+            | python -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          assert 'provider_aws' in data
+          assert 'tag_env_prod' in data
+          assert 'web-01.example.com' in data['_meta']['hostvars']
+          print('contract checks passed')
+          "
