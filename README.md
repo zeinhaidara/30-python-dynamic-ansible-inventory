@@ -1,8 +1,6 @@
-# Dynamic Ansible Inventory
+# Dynamic Ansible inventory
 
-A pure Python script that implements Ansible's dynamic inventory contract
-(`--list` / `--host`) and aggregates instances from cloud provider
-adapters, grouping hosts by provider and by tag.
+A Python script implementing Ansible's dynamic inventory contract (`--list` / `--host`) for AWS EC2, grouping hosts by tag and provider. Azure and GCP are retained interface-only stubs that raise `NotImplementedError`. Validation uses fakes in CI.
 
 ## Problem
 
@@ -73,7 +71,7 @@ ansible-inventory -i inventory.py --list
 ansible-playbook -i inventory.py site.yml
 ```
 
-## Limits
+## Known limitations
 
 - Only `running` EC2 instances are included; stopped/terminated
   instances are skipped.
@@ -103,7 +101,7 @@ unchanged infrastructure produces the same grouping and hostvars every
 time (aside from ordinary infra drift between calls, which is not this
 script's concern).
 
-## Testing status
+## Validation level
 
 Tested:
 - `AwsProvider` pagination, tag/IP capture, and running-state filtering,
