@@ -8,6 +8,10 @@ Write a script that generates dynamic inventory for Ansible from
 AWS/Azure/GCP APIs, grouping hosts by tag and provider, behind one
 provider interface.
 
+Why it matters: a static inventory file goes stale as soon as instances are
+replaced by autoscaling. Reading the live instance list and grouping it by
+tag lets playbooks target `tag_env_prod` instead of a hand-kept host list.
+
 ## Scope
 
 - **AWS is the only real adapter.** `AwsProvider` calls a boto3 EC2
@@ -127,3 +131,14 @@ Not tested:
   this Windows machine (`ansible-core`'s CLI requires POSIX blocking-IO
   semantics not available on Windows); it is exercised in CI on
   `ubuntu-latest` instead.
+
+Run the same checks as CI (Linux or WSL for the last step; no AWS
+credentials needed):
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m ruff check .
+python -m pytest -q
+chmod +x tests/fixtures/fixture_inventory.py
+ansible-inventory -i tests/fixtures/fixture_inventory.py --list
+```
